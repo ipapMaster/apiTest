@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2 class="text-center mb-4">О нас</h2>
+
+<div class="row">
+    <div class="col-md-6">
+        <img src="{{url_for('static', filename='images/about.jpg')}}" alt="О компании" class="img-fluid rounded shadow mb-4">
+    </div>
+    <div class="col-md-6">
+        <p class="lead">
+            Мы — команда профессионалов, создающих инновационные решения для вашего бизнеса.
+        </p>
+        <p>
+            Наша компания специализируется на разработке современных веб-решений и цифровых продуктов. Мы помогаем
+            бизнесу расти и развиваться, предоставляя качественные услуги в сфере IT-разработки.
+        </p>
+        <p>
+            За годы работы мы реализовали более 100 успешных проектов и продолжаем развиваться, внедряя новые технологии
+            и подходы.
+        </p>
+    </div>
+</div>
+
+<!-- Наши ценности -->
+<div class="row mt-5">
+    <div class="col-12 text-center">
+        <h3>Наши ценности</h3>
+        <p class="text-muted mb-4">То, что делает нас особенными</p>
+    </div>
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card mb-4">
+                <div class="card-body">
+                    <i class="fas fa-shield-alt fa-2x mb-3 text-primary"></i>
+                    <h5 class="card-title">Надежность</h5>
+                    <p class="card-text">Мы гарантируем высокое качество всех наших услуг.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card mb-4">
+                <div class="card-body">
+                    <i class="fas fa-users fa-2x mb-3 text-primary"></i>
+                    <h5 class="card-title">Команда профессионалов</h5>
+                    <p class="card-text">Наши специалисты — эксперты в своей области.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card mb-4">
+                <div class="card-body">
+                    <i class="fas fa-chart-line fa-2x mb-3 text-primary"></i>
+                    <h5 class="card-title">Результативность</h5>
+                    <p class="card-text">Мы нацелены на достижение конкретных результатов.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
