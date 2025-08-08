@@ -8,8 +8,11 @@ from data.users import User
 from forms.loginform import LoginForm
 from forms.news import NewsForm
 from forms.user import Register
+from flasgger import Swagger
 
 app = Flask(__name__)
+swagger = Swagger(app)
+
 
 login_manager = LoginManager()
 login_manager.init_app(app)
