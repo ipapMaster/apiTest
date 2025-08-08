@@ -73,3 +73,6 @@ JSON:
 
         DELETE /api/user/1
 
+9. **Вывод документации Swagger**
+    
+    http://localhost:5000/apidocs/
