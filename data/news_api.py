@@ -14,6 +14,34 @@ blueprint = flask.Blueprint(
 
 @blueprint.route('/api/news', methods=['GET'])
 def get_news():
+    """
+    Получить список всех новостей
+    ---
+    tags:
+      - News
+    responses:
+      200:
+        description: Список новостей
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                news:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      title:
+                        type: string
+                      content:
+                        type: string
+                      user:
+                        type: object
+                        properties:
+                          name:
+                            type: string
+    """
     with session_manager.create_session() as db_sess:
         news = db_sess.query(News).all()
         return jsonify(
@@ -27,6 +55,39 @@ def get_news():
 
 @blueprint.route('/api/news/<int:news_id>', methods=['GET'])
 def get_one_news(news_id):
+    """
+    Получить новость по ID
+    ---
+    tags:
+      - News
+    parameters:
+      - name: news_id
+        in: path
+        required: true
+        schema:
+          type: integer
+    responses:
+      200:
+        description: Новость найдена
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                news:
+                  type: object
+                  properties:
+                    title:
+                      type: string
+                    content:
+                      type: string
+                    user_id:
+                      type: integer
+                    is_private:
+                      type: boolean
+      404:
+        description: Новость не найдена
+    """
     with session_manager.create_session() as db_sess:
         news = db_sess.query(News).get(news_id)
         if not news:
@@ -40,6 +101,44 @@ def get_one_news(news_id):
 
 @blueprint.route('/api/news', methods=['POST'])
 def create_news():
+    """
+    Создать новую новость
+    ---
+    tags:
+      - News
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - title
+              - content
+              - user_id
+              - is_private
+            properties:
+              title:
+                type: string
+              content:
+                type: string
+              user_id:
+                type: integer
+              is_private:
+                type: boolean
+    responses:
+      200:
+        description: Новость успешно создана
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                id:
+                  type: integer
+      400:
+        description: Некорректный запрос
+    """
     if not request.json:
         return make_response(jsonify({'error': 'Empty request'}), 400)
     elif not all(key in request.json for key in
@@ -59,6 +158,30 @@ def create_news():
 
 @blueprint.route('/api/news/<int:news_id>', methods=['DELETE'])
 def delete_news(news_id):
+    """
+    Удалить новость по ID
+    ---
+    tags:
+      - News
+    parameters:
+      - name: news_id
+        in: path
+        required: true
+        schema:
+          type: integer
+    responses:
+      200:
+        description: Новость удалена
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                success:
+                  type: string
+      404:
+        description: Новость не найдена
+    """
     with session_manager.create_session() as db_sess:
         news = db_sess.get(News, news_id)
         if not news:
@@ -70,21 +193,55 @@ def delete_news(news_id):
 
 @blueprint.route('/api/news/<int:news_id>', methods=['PUT'])
 def update_news(news_id):
-    # Проверяем наличие JSON в запросе
+    """
+    Обновить новость по ID
+    ---
+    tags:
+      - News
+    parameters:
+      - name: news_id
+        in: path
+        required: true
+        schema:
+          type: integer
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              title:
+                type: string
+              content:
+                type: string
+              user_id:
+                type: integer
+              is_private:
+                type: boolean
+    responses:
+      200:
+        description: Новость обновлена
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                success:
+                  type: boolean
+      400:
+        description: Некорректный запрос
+      404:
+        description: Новость не найдена
+    """
     if not request.json:
         return make_response(jsonify({'error': 'Empty request'}), 400)
 
-    # Получаем сессию базы данных
     with session_manager.create_session() as db_sess:
-
-        # Ищем новость по ID
         news = db_sess.query(News).filter(News.id == news_id).first()
-
-        # Если новость не найдена
         if not news:
             return make_response(jsonify({'error': 'News not found'}), 404)
 
-        # Обновляем поля, если они переданы в запросе
         try:
             if 'title' in request.json:
                 news.title = request.json['title']
@@ -105,6 +262,49 @@ def update_news(news_id):
 
 @blueprint.route('/api/user', methods=['POST'])
 def register():
+    """
+    Регистрация пользователя
+    ---
+    tags:
+      - User
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - name
+              - email
+              - password
+              - password_again
+              - about
+            properties:
+              name:
+                type: string
+              email:
+                type: string
+              password:
+                type: string
+              password_again:
+                type: string
+              about:
+                type: string
+    responses:
+      201:
+        description: Регистрация успешна
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                message:
+                  type: string
+      400:
+        description: Ошибка в параметрах
+      409:
+        description: Пользователь с таким email уже существует
+    """
     try:
         data = request.get_json()
 
@@ -120,7 +320,6 @@ def register():
         if password != password_again:
             return jsonify({'error': 'Пароли не совпадают'}), 400
 
-        # Работа с базой данных
         with session_manager.create_session() as db_sess:
             if db_sess.query(User).filter(User.email == email).first():
                 return jsonify({'error': 'Пользователь с таким email уже существует'}), 409
@@ -134,12 +333,52 @@ def register():
         return jsonify({'message': 'Регистрация успешна'}), 201
 
     except Exception as e:
-        # Логируем и возвращаем ошибку
         return jsonify({'error': f'Ошибка сервера: {str(e)}'}), 500
 
 
 @blueprint.route('/api/user/<int:user_id>', methods=['PUT'])
 def update_user(user_id):
+    """
+    Обновить пользователя
+    ---
+    tags:
+      - User
+    parameters:
+      - name: user_id
+        in: path
+        required: true
+        schema:
+          type: integer
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              name:
+                type: string
+              email:
+                type: string
+              about:
+                type: string
+              password:
+                type: string
+    responses:
+      200:
+        description: Пользователь обновлен
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                message:
+                  type: string
+      400:
+        description: Пустой запрос
+      404:
+        description: Пользователь не найден
+    """
     try:
         data = request.get_json()
 
@@ -151,7 +390,6 @@ def update_user(user_id):
             if not user:
                 return jsonify({'error': 'Пользователь не найден'}), 404
 
-            # Обновляем доступные поля (только если они переданы)
             for field in ('name', 'email', 'about'):
                 if field in data:
                     setattr(user, field, data[field])
@@ -168,6 +406,30 @@ def update_user(user_id):
 
 @blueprint.route('/api/user/<int:user_id>', methods=['DELETE'])
 def delete_user(user_id):
+    """
+    Удалить пользователя
+    ---
+    tags:
+      - User
+    parameters:
+      - name: user_id
+        in: path
+        required: true
+        schema:
+          type: integer
+    responses:
+      200:
+        description: Пользователь удален
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                message:
+                  type: string
+      404:
+        description: Пользователь не найден
+    """
     try:
         with session_manager.create_session() as db_sess:
             user = db_sess.query(User).get(user_id)
@@ -184,38 +446,90 @@ def delete_user(user_id):
 
 @blueprint.route('/api/users', methods=['GET'])
 def get_all_users():
+    """
+    Получить всех пользователей
+    ---
+    tags:
+      - User
+    responses:
+      200:
+        description: Список пользователей
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                  username:
+                    type: string
+                  email:
+                    type: string
+                  create_data:
+                    type: string
+    """
     with session_manager.create_session() as db_sess:
         users = db_sess.query(User).all()
-        return jsonify([
-            {
-                'id': user.id,
-                'username': user.name,
-                'email': user.email,
-                'create_data': user.create_data.isoformat()
-            }
-            for user in users
-        ])
+        return jsonify(
+            [
+                user.to_dict(only=('id', 'username', 'email', 'create_data'))
+                for user in users
+            ]
+        )
 
 
 @blueprint.route('/api/users/<int:user_id>', methods=['GET'])
 def get_user(user_id):
+    """
+    Получить пользователя по ID
+    ---
+    tags:
+      - User
+    parameters:
+      - name: user_id
+        in: path
+        required: true
+        schema:
+          type: integer
+    responses:
+      200:
+        description: Пользователь найден
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                id:
+                  type: integer
+                username:
+                  type: string
+                email:
+                  type: string
+                create_data:
+                  type: string
+                news:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      id:
+                        type: integer
+                      title:
+                        type: string
+                      content:
+                        type: string
+                      is_private:
+                        type: boolean
+      404:
+        description: Пользователь не найден
+    """
     with session_manager.create_session() as db_sess:
-        user = db_sess.query(User).filter_by(id=user_id).first()
+        user = db_sess.query(User).get(user_id)
         if not user:
-            return jsonify({'error': 'Пользователь не найден'}), 404
-
-        return jsonify({
-            'id': user.id,
-            'username': user.name,
-            'email': user.email,
-            'create_data': user.create_data.isoformat(),
-            'news': [
-                {
-                    'id': news.id,
-                    'title': news.title,
-                    'content': news.content,
-                    'is_private': news.is_private
-                }
-                for news in user.news
-            ]
-        })
+            return make_response(jsonify({'error': 'Not found'}), 404)
+        return jsonify(user.to_dict(
+            only=('id', 'username', 'email', 'create_data'),
+            rels={'news': ('id', 'title', 'content', 'is_private')}
+        ))
